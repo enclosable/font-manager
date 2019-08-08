@@ -16,14 +16,26 @@ FontDescriptor *substituteFont(char *, char *);
 // converts a ResultSet to a JavaScript array
 Local<Array> collectResults(ResultSet *results) {
   Nan::EscapableHandleScope scope;
-  Local<Array> res = Nan::New<Array>(results->size());
+
+  ResultSet *resultWithoutNull = new ResultSet();
+
+  for (ResultSet::iterator it = results->begin(); it != results->end(); it++) {
+    if ((*it)->path != NULL && (*it)->postscriptName != NULL && (*it)->family != NULL && (*it)->style != NULL) {
+      resultWithoutNull->push_back(*it);
+    }
+  }
+
+  Local<Array> res = Nan::New<Array>(resultWithoutNull->size());
 
   int i = 0;
-  for (ResultSet::iterator it = results->begin(); it != results->end(); it++) {
+
+  for (ResultSet::iterator it = resultWithoutNull->begin(); it != resultWithoutNull->end(); it++) {
     Nan::Set(res, i++, (*it)->toJSObject());
   }
 
+  resultWithoutNull->clear();
   delete results;
+  delete resultWithoutNull;
   return scope.Escape(res);
 }
 
